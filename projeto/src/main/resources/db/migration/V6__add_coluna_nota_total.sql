@@ -1,0 +1,1 @@
+ALTER TABLE tb_auditoria_5s ADD COLUMN nota_total INT;

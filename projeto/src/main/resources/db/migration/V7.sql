@@ -1,0 +1,1 @@
+ALTER TABLE tb_auditoria_5s MODIFY COLUMN nota_total DECIMAL(4,2);

@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: lab-lean-digital
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/laboratorio_lean?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=America/Sao_Paulo
+    username: root
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate # Deixa a criação das tabelas na mão do Flyway
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+server:
+  port: 8080
