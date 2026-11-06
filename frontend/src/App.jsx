@@ -33,7 +33,7 @@ export default function App() {
     <>
       <header className="header">
         <div className="header-top">
-          <img className="logo-img" src="/renault-logo.svg" alt="Renault" />
+          <img className="logo-img" src={`${import.meta.env.BASE_URL}renault-logo.svg`} alt="Renault" />
           <div className="header-title">Lab Lean Digital · Renault do Brasil</div>
           {USE_MOCK && <span className="badge" style={{ marginLeft: 'auto' }}>Modo demonstração (sem banco)</span>}
         </div>
