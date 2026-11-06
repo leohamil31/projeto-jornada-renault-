@@ -94,6 +94,11 @@ textarea { min-height: 80px; resize: vertical; }
 .metric { background: rgba(255,255,255,.45); border: var(--glass-border); border-top: 4px solid var(--yellow); border-radius: 14px; padding: 12px; text-align: center; box-shadow: var(--glass-shadow); }
 .metric strong { display: block; font-size: 24px; }
 .metric span { font-size: 12px; color: var(--gray); }
+.safety-checks { display: grid; gap: 12px; }
+.safety-check { border: 1px solid rgba(0,0,0,.12); border-radius: 12px; padding: 12px 14px; }
+.safety-check legend { padding: 0 4px; font-size: 14px; font-weight: 600; }
+.safety-choice { display: inline-flex; align-items: center; gap: 6px; margin: 8px 18px 0 0; font-size: 14px; font-weight: 400; }
+.safety-choice input { width: auto; margin: 0; accent-color: var(--ok); }
 
 table { width: 100%; border-collapse: collapse; font-size: 14px; }
 th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); }

@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import ApontamentoForm from './components/ApontamentoForm.jsx';
-import FiveSForm from './components/FiveSForm.jsx';
-import OEEForm from './components/OEEForm.jsx';
+import AuditoriaSegurancaForm from './components/AuditoriaSegurancaForm.jsx';
+import VolumeProducaoForm from './components/VolumeProducaoForm.jsx';
 import Historico from './components/Historico.jsx';
 import { USE_MOCK, getApontamentos } from './api.js';
 
 const ABAS = [
   { id: 'apontamento', label: 'Apontamento', icon: 'M12 5v14M5 12h14' },
-  { id: '5s', label: 'Auditoria 5S', precisa: true, icon: 'M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9' },
-  { id: 'oee', label: 'OEE', precisa: true, icon: 'M3 3v18h18M7 15l4-4 3 3 5-6' },
+  { id: 'seguranca', label: 'Auditoria de segurança', icon: 'M12 3 4 7v5c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V7l-8-4Zm-3 9 2 2 4-4' },
+  { id: 'volume', label: 'Volume de produção', icon: 'M3 3v18h18M7 15v-3m5 3V7m5 8V5' },
   { id: 'historico', label: 'Histórico', icon: 'M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2' },
 ];
 
@@ -26,7 +26,7 @@ export default function App() {
     }).catch(() => setLista([]));
   }, [aba]);
 
-  const selecionar = (a, destino = '5s') => { setAtual(a); setAba(destino); };
+  const selecionar = (a, destino = 'seguranca') => { setAtual(a); setAba(destino); };
   const escolher = (e) => setAtual(lista.find((x) => String(x.idApontamento) === e.target.value) || null);
 
   return (
@@ -56,7 +56,7 @@ export default function App() {
       </header>
 
       <main className="container">
-        {(aba === '5s' || aba === 'oee') && (
+        {(aba === 'seguranca' || aba === 'volume') && (
           <div className="card" style={{ marginBottom: 16 }}>
             <label>Apontamento</label>
             {lista.length ? (
@@ -79,8 +79,8 @@ export default function App() {
             <ApontamentoForm onCriado={(a) => selecionar(a)} />
           </>
         )}
-        {aba === '5s' && atual && <FiveSForm key={atual.idApontamento} idApontamento={atual.idApontamento} />}
-        {aba === 'oee' && atual && <OEEForm key={atual.idApontamento} idApontamento={atual.idApontamento} />}
+        {aba === 'seguranca' && atual && <AuditoriaSegurancaForm key={atual.idApontamento} idApontamento={atual.idApontamento} />}
+        {aba === 'volume' && atual && <VolumeProducaoForm key={atual.idApontamento} idApontamento={atual.idApontamento} />}
         {aba === 'historico' && <Historico onSelecionar={selecionar} />}
       </main>
     </>

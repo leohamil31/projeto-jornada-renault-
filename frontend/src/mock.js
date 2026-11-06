@@ -11,9 +11,16 @@ const TURNOS = [
   { idTurno: 3, codigo: 'T3', nome: 'Turno 3', horaInicio: '22:00:00', horaFim: '06:00:00' },
 ];
 const USUARIOS = { 1: 'Emilio Rodrigues', 2: 'Operador Padrão', 3: 'Leonardo', 4: 'Gabriel', 5: 'Marcel', 6: 'João' };
-const TIPOS = { 1: '5S', 2: 'OEE', 3: 'GERAL' };
+const TIPOS = { 1: 'Segurança', 2: 'Produção', 3: 'Geral' };
 
-const load = () => JSON.parse(localStorage.getItem(KEY) || '{"apontamentos":[],"s5":[],"oee":[]}');
+const load = () => {
+  const db = JSON.parse(localStorage.getItem(KEY) || '{"apontamentos":[]}');
+  return {
+    ...db,
+    auditoriasSeguranca: db.auditoriasSeguranca || [],
+    volumesProducao: db.volumesProducao || [],
+  };
+};
 const save = (db) => localStorage.setItem(KEY, JSON.stringify(db));
 
 const erro = (status, message) => Promise.reject({ response: { status, data: { message } } });
@@ -42,36 +49,55 @@ export const mock = {
     return novo;
   },
 
-  criarAuditoria5s: async (p) => {
+  criarAuditoriaSeguranca: async (p) => {
     const db = load();
     if (!find(db.apontamentos, p.idApontamento)) return erro(404, 'Apontamento não encontrado');
-    const notas = [p.notaSeiri, p.notaSeiton, p.notaSeiso, p.notaSeiketsu, p.notaShitsuke];
-    const reg = { ...p, idAuditoria: db.s5.length + 1, notaTotal: notas.reduce((a, b) => a + b, 0) / notas.length };
-    db.s5.push(reg);
-    save(db);
-    return reg;
-  },
-
-  criarOee: async (p) => {
-    const db = load();
-    if (!find(db.apontamentos, p.idApontamento)) return erro(404, 'Apontamento não encontrado');
-    const produtivo = p.tempoPlanejadoMinutos - p.tempoParadaMinutos;
-    const disp = p.tempoPlanejadoMinutos > 0 ? produtivo / p.tempoPlanejadoMinutos : 0;
-    const perf = produtivo > 0 ? (p.tempoCicloPadrao * p.producaoTotal) / (produtivo * 60) : 0;
-    const qual = p.producaoTotal > 0 ? (p.producaoTotal - p.pecasRefugadas) / p.producaoTotal : 0;
+    const verificacoes = p.verificacoes || {};
+    const chaves = [
+      'epiConforme',
+      'protecoesMaquinasConformes',
+      'rotasEmergenciaDesobstruidas',
+      'sinalizacaoAdequada',
+      'areaSemRiscosEvidentes',
+    ];
+    if (chaves.some((chave) => typeof verificacoes[chave] !== 'boolean')) {
+      return erro(400, 'Responda a todos os itens da auditoria de segurança.');
+    }
+    if (Object.values(verificacoes).some((conforme) => !conforme) && !p.planoAcao?.trim()) {
+      return erro(400, 'Informe um plano de ação para os itens não conformes.');
+    }
     const reg = {
       ...p,
-      idApuracaoOee: db.oee.length + 1,
-      indiceDisponibilidade: disp * 100,
-      indicePerformance: perf * 100,
-      indiceQualidade: qual * 100,
-      indiceOee: disp * perf * qual * 100,
+      idAuditoriaSeguranca: db.auditoriasSeguranca.find((a) => a.idApontamento === p.idApontamento)?.idAuditoriaSeguranca
+        || Math.max(0, ...db.auditoriasSeguranca.map((a) => a.idAuditoriaSeguranca)) + 1,
+      status: Object.values(verificacoes).every(Boolean) ? 'CONFORME' : 'AÇÃO NECESSÁRIA',
     };
-    db.oee.push(reg);
+    const index = db.auditoriasSeguranca.findIndex((a) => a.idApontamento === p.idApontamento);
+    if (index >= 0) db.auditoriasSeguranca[index] = reg;
+    else db.auditoriasSeguranca.push(reg);
     save(db);
     return reg;
   },
 
-  getAuditoria5s: async (id) => find(load().s5, id) || erro(404, 'Auditoria 5S não encontrada'),
-  getOee: async (id) => find(load().oee, id) || erro(404, 'Apuração OEE não encontrada'),
+  criarVolumeProducao: async (p) => {
+    const db = load();
+    if (!find(db.apontamentos, p.idApontamento)) return erro(404, 'Apontamento não encontrado');
+    if (!Number.isInteger(p.quantidadeProduzida) || p.quantidadeProduzida < 0) {
+      return erro(400, 'A quantidade produzida deve ser um número inteiro igual ou maior que zero.');
+    }
+    const reg = {
+      ...p,
+      idVolumeProducao: db.volumesProducao.find((v) => v.idApontamento === p.idApontamento)?.idVolumeProducao
+        || Math.max(0, ...db.volumesProducao.map((v) => v.idVolumeProducao)) + 1,
+      dataHora: new Date().toISOString(),
+    };
+    const index = db.volumesProducao.findIndex((v) => v.idApontamento === p.idApontamento);
+    if (index >= 0) db.volumesProducao[index] = reg;
+    else db.volumesProducao.push(reg);
+    save(db);
+    return reg;
+  },
+
+  getAuditoriaSeguranca: async (id) => find(load().auditoriasSeguranca, id) || erro(404, 'Auditoria de segurança não encontrada'),
+  getVolumeProducao: async (id) => find(load().volumesProducao, id) || erro(404, 'Volume de produção não encontrado'),
 };

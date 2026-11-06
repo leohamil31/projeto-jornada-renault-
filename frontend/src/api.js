@@ -14,8 +14,8 @@ export const USUARIOS = [
 ];
 
 export const TIPOS_INDICADOR = [
-  { id: 1, nome: '5S' },
-  { id: 2, nome: 'OEE' },
+  { id: 1, nome: 'Segurança' },
+  { id: 2, nome: 'Produção' },
   { id: 3, nome: 'Geral' },
 ];
 
@@ -39,10 +39,14 @@ const real = {
   getTurnos: () => api.get('/turnos').then((r) => r.data),
   getApontamentos: () => api.get('/apontamentos').then((r) => r.data),
   criarApontamento: (p) => api.post('/apontamentos', p).then((r) => r.data),
-  criarAuditoria5s: (p) => api.post('/5s', p).then((r) => r.data),
-  criarOee: (p) => api.post('/oee', p).then((r) => r.data),
-  getAuditoria5s: (id) => api.get(`/5s/apontamento/${id}`).then((r) => r.data),
-  getOee: (id) => api.get(`/oee/apontamento/${id}`).then((r) => r.data),
+  criarAuditoriaSeguranca: (p) => api.post('/seguranca', {
+    idApontamento: p.idApontamento,
+    ...p.verificacoes,
+    planoAcao: p.planoAcao,
+  }).then((r) => r.data),
+  criarVolumeProducao: (p) => api.post('/volume-producao', p).then((r) => r.data),
+  getAuditoriaSeguranca: (id) => api.get(`/seguranca/apontamento/${id}`).then((r) => r.data),
+  getVolumeProducao: (id) => api.get(`/volume-producao/apontamento/${id}`).then((r) => r.data),
 };
 
 const impl = USE_MOCK ? mock : real;
@@ -51,9 +55,9 @@ export const getAreas = impl.getAreas;
 export const getTurnos = impl.getTurnos;
 export const getApontamentos = impl.getApontamentos;
 export const criarApontamento = impl.criarApontamento;
-export const criarAuditoria5s = impl.criarAuditoria5s;
-export const criarOee = impl.criarOee;
-export const getAuditoria5s = impl.getAuditoria5s;
-export const getOee = impl.getOee;
+export const criarAuditoriaSeguranca = impl.criarAuditoriaSeguranca;
+export const criarVolumeProducao = impl.criarVolumeProducao;
+export const getAuditoriaSeguranca = impl.getAuditoriaSeguranca;
+export const getVolumeProducao = impl.getVolumeProducao;
 
 export default api;

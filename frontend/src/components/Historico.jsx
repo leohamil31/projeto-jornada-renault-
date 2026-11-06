@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { extrairErros, getApontamentos, getAuditoria5s, getOee } from '../api.js';
-import { Errors, Metric, fmtData, pct } from '../ui.jsx';
+import { extrairErros, getApontamentos, getAuditoriaSeguranca, getVolumeProducao } from '../api.js';
+import { Errors, Metric, fmtData } from '../ui.jsx';
+import { VERIFICACOES_SEGURANCA } from './AuditoriaSegurancaForm.jsx';
 
 export default function Historico({ onSelecionar }) {
   const [lista, setLista] = useState([]);
@@ -21,11 +22,11 @@ export default function Historico({ onSelecionar }) {
   useEffect(carregar, []);
 
   const ver = async (a) => {
-    const [s5, oee] = await Promise.all([
-      getAuditoria5s(a.idApontamento).catch(() => null),
-      getOee(a.idApontamento).catch(() => null),
+    const [seguranca, volume] = await Promise.all([
+      getAuditoriaSeguranca(a.idApontamento).catch(() => null),
+      getVolumeProducao(a.idApontamento).catch(() => null),
     ]);
-    setDetalhe({ a, s5, oee });
+    setDetalhe({ a, seguranca, volume });
   };
 
   const areas = [...new Set(lista.map((a) => a.nomeArea))];
@@ -34,12 +35,10 @@ export default function Historico({ onSelecionar }) {
     (!area || a.nomeArea === area) &&
     (!q || [a.nomeUsuario, a.nomeTurno, a.nomeArea, a.observacoes, a.idApontamento].join(' ').toLowerCase().includes(q)));
 
-  const classeOee = (v) => (v >= 85 ? 'ok' : v >= 60 ? 'warn' : 'bad');
-
   return (
     <div className="card">
       <h2>Histórico de apontamentos</h2>
-      <p className="sub">Consulte os registros e seus resultados de 5S e OEE.</p>
+      <p className="sub">Consulte as auditorias de segurança e os volumes de produção.</p>
       <Errors erros={erros} />
       <div className="grid" style={{ marginBottom: 14 }}>
         <div>
@@ -72,8 +71,8 @@ export default function Historico({ onSelecionar }) {
               <td><span className="badge">{a.status}</span></td>
               <td>
                 <button className="link" onClick={() => ver(a)}>Detalhes</button>
-                <button className="link" onClick={() => onSelecionar(a, '5s')}>5S</button>
-                <button className="link" onClick={() => onSelecionar(a, 'oee')}>OEE</button>
+                <button className="link" onClick={() => onSelecionar(a, 'seguranca')}>Segurança</button>
+                <button className="link" onClick={() => onSelecionar(a, 'volume')}>Produção</button>
               </td>
             </tr>
           ))}
@@ -84,32 +83,24 @@ export default function Historico({ onSelecionar }) {
         <div style={{ marginTop: 20 }}>
           <h2>Apontamento #{detalhe.a.idApontamento}</h2>
           <p className="sub">{detalhe.a.observacoes}</p>
-          {detalhe.s5 ? (
+          {detalhe.seguranca ? (
             <>
-              <div className="metrics">
-                <Metric label="Nota 5S total" value={detalhe.s5.notaTotal} />
-                <Metric label="Seiri" value={detalhe.s5.notaSeiri} />
-                <Metric label="Seiton" value={detalhe.s5.notaSeiton} />
-                <Metric label="Seiso" value={detalhe.s5.notaSeiso} />
-                <Metric label="Seiketsu" value={detalhe.s5.notaSeiketsu} />
-                <Metric label="Shitsuke" value={detalhe.s5.notaShitsuke} />
-              </div>
-              {detalhe.s5.planoAcao && <p className="sub">Plano de ação: {detalhe.s5.planoAcao}</p>}
-            </>
-          ) : <p className="sub">Sem auditoria 5S.</p>}
-          {detalhe.oee ? (
-            <>
-              <div className="metrics">
-                <Metric label="Disponibilidade" value={pct(detalhe.oee.indiceDisponibilidade)} />
-                <Metric label="Performance" value={pct(detalhe.oee.indicePerformance)} />
-                <Metric label="Qualidade" value={pct(detalhe.oee.indiceQualidade)} />
-                <Metric label="OEE" value={pct(detalhe.oee.indiceOee)} />
-              </div>
-              <span className={`badge ${classeOee(detalhe.oee.indiceOee)}`}>
-                {detalhe.oee.indiceOee >= 85 ? 'Classe mundial (≥85%)' : detalhe.oee.indiceOee >= 60 ? 'Aceitável (60–85%)' : 'Abaixo do esperado (<60%)'}
+              <span className={`badge ${detalhe.seguranca.status === 'CONFORME' ? 'ok' : 'bad'}`}>
+                Auditoria de segurança: {detalhe.seguranca.status}
               </span>
+              <div className="metrics">
+                {VERIFICACOES_SEGURANCA.map(({ key, label }) => (
+                  <Metric key={key} label={label} value={detalhe.seguranca.verificacoes[key] ? 'Conforme' : 'Não conforme'} />
+                ))}
+              </div>
+              {detalhe.seguranca.planoAcao && <p className="sub">Plano de ação: {detalhe.seguranca.planoAcao}</p>}
             </>
-          ) : <p className="sub">Sem apuração de OEE.</p>}
+          ) : <p className="sub">Sem auditoria de segurança.</p>}
+          {detalhe.volume ? (
+            <div className="metrics">
+              <Metric label="Volume produzido" value={`${detalhe.volume.quantidadeProduzida} peças`} />
+            </div>
+          ) : <p className="sub">Sem volume de produção registrado.</p>}
         </div>
       )}
     </div>

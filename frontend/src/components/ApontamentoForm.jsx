@@ -51,7 +51,7 @@ export default function ApontamentoForm({ onCriado }) {
   return (
     <form className="card" onSubmit={submit}>
       <h2>Novo apontamento</h2>
-      <p className="sub">Passo 1: registre o apontamento. Depois você poderá lançar a auditoria 5S e a apuração de OEE.</p>
+      <p className="sub">Passo 1: registre o apontamento. Depois, faça a auditoria de segurança e informe o volume produzido.</p>
       <Errors erros={erros} />
       <div className="grid">
         <div>
